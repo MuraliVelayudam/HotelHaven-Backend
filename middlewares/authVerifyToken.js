@@ -2,18 +2,16 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const secreteKey = process.env.SECRETE_KEY;
-
 const verifyToken = async (req, res, next) => {
-  const token = req.cookie["auth_Token"];
+  const token = req.cookies["auth_Token"];
+
+  if (!token) {
+    return res.status(400).json({ error: "UnAuthorized" });
+  }
   try {
-    if (!token) {
-      return res.status(400).json({ error: "UnAuthorized" });
-    }
-
-    const decodeToken = jwt.verify(token);
-
+    const decodeToken = jwt.verify(token, process.env.SECRETE_KEY);
     req.userId = decodeToken.userId;
+    next();
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "UnAuthorized" });

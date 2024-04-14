@@ -5,18 +5,15 @@ const bcrypt = require("bcryptjs");
 
 // Register User
 
-const secreteKey = process.env.SECRETE_KEY;
-
 const userRegistration = async (req, res) => {
   const errors = validationResult(req);
 
   const { firstName, lastName, email, password } = req.body;
 
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     let user = await User.findOne({ email });
 
     if (user) {
@@ -32,7 +29,7 @@ const userRegistration = async (req, res) => {
 
     await user.save();
 
-    const token = jwt.sign({ userId: user.id }, secreteKey, {
+    const token = jwt.sign({ userId: user.id }, process.env.SECRETE_KEY, {
       expiresIn: "1d",
     });
 
@@ -56,11 +53,10 @@ const userLogin = async (req, res) => {
 
   const { email, password } = req.body;
 
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array() });
+  }
   try {
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ error: errors.array() });
-    }
-
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -73,15 +69,17 @@ const userLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid Credentials" });
     }
 
-    const token = jwt.sign({ userId: user.id }, secreteKey, {
+    const token = jwt.sign({ userId: user.id }, process.env.SECRETE_KEY, {
       expiresIn: "1d",
     });
 
     res.cookie("auth_Token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "Production",
-      maxAge: "86400000",
+      maxAge: 86400000,
     });
+
+    res.status(200).json({ message: "User Successfully Logged In" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal Error" });
@@ -90,7 +88,7 @@ const userLogin = async (req, res) => {
 
 // Get Verify Token
 
-const userVerifyToken = (req, res) => {
+const verifyUserToken = (req, res) => {
   res.status(200).json({ userId: req.userId });
 };
 
@@ -107,6 +105,6 @@ const userSignOut = (req, res) => {
 module.exports = {
   userRegistration,
   userLogin,
-  userVerifyToken,
+  verifyUserToken,
   userSignOut,
 };

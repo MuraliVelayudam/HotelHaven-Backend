@@ -2,7 +2,7 @@ const express = require("express");
 const { check } = require("express-validator");
 const {
   userLogin,
-  userVerifyToken,
+  verifyUserToken,
   userSignOut,
 } = require("../controllers/userController");
 const verifyToken = require("../middlewares/authVerifyToken");
@@ -21,7 +21,7 @@ authRouter.post(
   userLogin
 );
 
-authRouter.get("/verifyToken", verifyToken, userVerifyToken);
+authRouter.get("/verifyToken", verifyToken, verifyUserToken);
 
 authRouter.post("/signOut", userSignOut);
 
